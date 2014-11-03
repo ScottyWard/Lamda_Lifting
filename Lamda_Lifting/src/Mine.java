@@ -1,4 +1,12 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Scanner;
 
 /*
  * Author: Scotty Ward, sward2011@my.fit.edu
@@ -152,5 +160,84 @@ public final class Mine implements MineInterface {
             copy[i] = Arrays.copyOf(map[i], cols);
         }
         return copy;
+    }
+
+    public static Mine createMine (final String fileName) throws MalformedURLException,
+    IOException {
+        /*
+         * Scotty: Is there a better way to check if the file argument supplied is a URL
+         * or a local file?
+         */
+        InputStream input = null;
+        final File file = new File(fileName);
+        if (file.isFile()) {
+            input = new FileInputStream(file);
+        } else {
+            input = new URL(fileName).openStream();
+        }
+        
+        /*
+         * read the map text lines (rows), where is the first row line is the last row in
+         * the mine map
+         */
+        int cols = 0;
+        final ArrayDeque<String> mapRows = new ArrayDeque<String>();
+        try (final Scanner mapFile = new Scanner(input, "US-ASCII");) {
+            while (mapFile.hasNextLine()) {
+                final String line = mapFile.nextLine();
+                if (line == null || line.isEmpty()) {
+                    break;
+                }
+                // track maximum column size of the mine
+                final int chars = line.length();
+                if (chars > cols) {
+                    cols = chars;
+                }
+                mapRows.push(line);
+            }
+        }
+        
+        /*
+         * setup the mine map from raw text to an ASCII character matrix of size rows X
+         * columns
+         */
+        final int rows = mapRows.size();
+        final char[][] map = new char[rows][cols];
+        int robotRow = 0;
+        int robotCol = 0;
+        int lambdas = 0;
+        for (int y = 0; y < rows; y++) {
+            // build rows bottom-up
+            final String rowText = mapRows.pop();
+            final int chars = rowText.length();
+            for (int x = 0; x < cols; x++) {
+                // build columns left-right
+                if (x < chars) {
+                    final char item = rowText.charAt(x);
+        
+                    // try to locate the position of the miner robot
+                    if (item == Mine.ROBOT) {
+                        robotRow = y + 1; // 1..ROWS indexing
+                        robotCol = x + 1; // 1..COLS indexing
+                    }
+        
+                    // count the number of lambdas to be collected
+                    if (item == Mine.LAMBDA) {
+                        lambdas++;
+                    }
+                    map[y][x] = item;
+                } else {
+                    /*
+                     * fill the rest trailing cells of the current row in the matrix with
+                     * a space object
+                     */
+                    map[y][x] = Mine.EMPTY;
+                }
+            }
+        }
+        
+        assert 1 < robotRow && robotRow < rows;
+        assert 1 < robotCol && robotCol < cols;
+        return new Mine(map, lambdas, robotRow, robotCol);
     }
 }
