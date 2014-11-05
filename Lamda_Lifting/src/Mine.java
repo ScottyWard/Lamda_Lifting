@@ -1,3 +1,10 @@
+/*
+ * Author: Scotty Ward, sward2011@my.fit.edu
+ * Author: Said Al Batrani, salbatrani2014@my.fit.edu
+ * Course: CSE 4051, Fall 2014
+ * Project: proj08, Lamda Lifting
+ */
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,13 +16,6 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /*
- * Author: Scotty Ward, sward2011@my.fit.edu
- * Author: Said Al Batrani, salbatrani2014@my.fit.edu
- * Course: CSE 4051, Fall 2014
- * Project: proj08, Lamda Lifting
- */
-
-/**
  * Represents the state of the mine
  */
 public final class Mine implements MineInterface {
@@ -81,6 +81,10 @@ public final class Mine implements MineInterface {
 
     private void setChar (final int row, final int col, final char item) {
         map[row - 1][col - 1] = item;
+    }
+
+    public int getLambdas () {
+        return lambdas;
     }
 
     public int getCollectedLambdas () {
@@ -163,10 +167,9 @@ public final class Mine implements MineInterface {
     }
 
     public static Mine createMine (final String fileName) throws MalformedURLException,
-    IOException {
+            IOException {
         /*
-         * Scotty: Is there a better way to check if the file argument supplied is a URL
-         * or a local file?
+         * Try
          */
         InputStream input = null;
         final File file = new File(fileName);
@@ -175,7 +178,7 @@ public final class Mine implements MineInterface {
         } else {
             input = new URL(fileName).openStream();
         }
-        
+
         /*
          * read the map text lines (rows), where is the first row line is the last row in
          * the mine map
@@ -196,7 +199,7 @@ public final class Mine implements MineInterface {
                 mapRows.push(line);
             }
         }
-        
+
         /*
          * setup the mine map from raw text to an ASCII character matrix of size rows X
          * columns
@@ -214,13 +217,13 @@ public final class Mine implements MineInterface {
                 // build columns left-right
                 if (x < chars) {
                     final char item = rowText.charAt(x);
-        
+
                     // try to locate the position of the miner robot
                     if (item == Mine.ROBOT) {
                         robotRow = y + 1; // 1..ROWS indexing
                         robotCol = x + 1; // 1..COLS indexing
                     }
-        
+
                     // count the number of lambdas to be collected
                     if (item == Mine.LAMBDA) {
                         lambdas++;
@@ -235,7 +238,7 @@ public final class Mine implements MineInterface {
                 }
             }
         }
-        
+
         assert 1 < robotRow && robotRow < rows;
         assert 1 < robotCol && robotCol < cols;
         return new Mine(map, lambdas, robotRow, robotCol);

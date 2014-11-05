@@ -1,4 +1,3 @@
-
 /*
  * Author: Scotty Ward, sward2011@my.fit.edu
  * Author: Said Al Batrani, salbatrani2014@my.fit.edu
@@ -6,16 +5,12 @@
  * Project: proj08, Lamda Lifting
  */
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayDeque;
-import java.util.Scanner;
+
+import javax.swing.SwingUtilities;
 
 public class Lift {
 
@@ -58,20 +53,25 @@ public class Lift {
     }
 
     private static void simulate (final MineEngine engine, final String display,
-            final Class agent) {
+            final Class<?> agent) {
         try {
             if (display.equals(DISPLAY_GRAPHICS)) {
                 // need to start the GUI
-
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run () {
+                        new MineGraphics(engine, agent);
+                    }
+                });
             } else {
+                // get the static method from the agent class using reflection
                 final Method method = agent.getDeclaredMethod(METHOD_NAME, new Class[] {
                     MineInterface.class
                 });
                 final Object[] args = new Object[] {
                     engine.getMine()
                 };
-                System.out.println(engine.getMineMap());
-                int counter = 0;
+
+                // play the game
                 while (!engine.isGameOver()) {
                     final char move = (char) method.invoke(null, args);
                     switch (move) {
@@ -93,20 +93,17 @@ public class Lift {
                     default:
                         engine.doWait();
                     }
-                    counter++;
                     engine.updateMap();
 
+                    // print every move with score when display mode is set to text
                     if (display.equals(DISPLAY_TEXT)) {
                         System.out.println(engine.getMineMap());
-                        System.out.println(engine.getScore() + " " + move);
+                        System.out.println(engine.getScore());
                     }
                 }
-                
+
+                // display final score at the end of the game
                 System.out.println(engine.getScore());
-                System.out.println("Number of moves: " + counter);
-                for (Character c: engine.getMoves()){
-                    System.out.printf("%c", c);
-                }
             }
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
