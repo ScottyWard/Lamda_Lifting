@@ -201,7 +201,6 @@ public final class MineEngine {
             return;
         }
         final char item = oldState[row - 2][col - 1];
-
         dropRockDown(row, col, item);
         slideRockRight(row, col, oldState, item);
         slideRockLeft(row, col, oldState, item);
@@ -262,7 +261,7 @@ public final class MineEngine {
     }
 
     private void checkLosingCondition (final int row, final int col) {
-        if (isValidRow(row) && isValidRow(row) && isValidCol(col)) {
+        if (isValidRow(row) && isValidRow(row - 1) && isValidCol(col)) {
             if (mine.getChar(row - 1, col) == Mine.ROBOT) {
                 status = DESTROYED;
             }

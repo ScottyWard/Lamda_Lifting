@@ -9,7 +9,8 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /*
- * 
+ * This code provided by Dr. Stansifer to do the character-by-character
+ * reading from standard input.
  */
 public class DefaultMiner {
 

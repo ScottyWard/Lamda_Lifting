@@ -26,7 +26,7 @@ import javax.swing.Timer;
 
 public final class MineGraphics extends JFrame {
 
-    private static final int TIMER_DELAY = 10;
+    private static final int TIMER_DELAY = 100;
     private static final Map<Character, ImageIcon> ICONS =
             new HashMap<Character, ImageIcon>();
     static {
