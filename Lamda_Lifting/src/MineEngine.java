@@ -29,7 +29,6 @@ public final class MineEngine {
     public static final String WON = "won";
     public static final String DESTROYED = "destroyed";
     public static final String ABORTED = "aborted";
-    public static final String HALTED = "halted";
 
     private final Mine mine;
     private final List<Character> moves;
@@ -130,7 +129,8 @@ public final class MineEngine {
         return direction;
     }
 
-    private boolean isSpaceAvailable (final int row, final int col, final char direction) {
+    private boolean isSpaceAvailable (final int row, final int col,
+            final char direction) {
         switch (mine.getChar(row, col)) {
         case Mine.EMPTY:
         case Mine.EARTH:
@@ -170,7 +170,8 @@ public final class MineEngine {
         return true;
     }
 
-    private void moveRockAt (final int row, final int col, char direction) {
+    private void moveRockAt (final int row, final int col,
+            final char direction) {
         if (direction == LEFT) {
             mine.moveRockLeft(row, col);
         } else if (direction == RIGHT) {
@@ -194,18 +195,29 @@ public final class MineEngine {
         }
     }
 
-    private void checkFallingRock (int row, int col, char[][] oldState) {
+    private void checkFallingRock (final int row, final int col,
+            final char[][] oldState) {
         if (!isValidRow(row - 1)) {
             return;
         }
         final char item = oldState[row - 2][col - 1];
 
+        dropRockDown(row, col, item);
+        slideRockRight(row, col, oldState, item);
+        slideRockLeft(row, col, oldState, item);
+        fillingOverLamda(row, col, oldState, item);
+    }
+
+    private void dropRockDown (final int row, final int col, final char item) {
         // falling into empty space
         if (item == Mine.EMPTY) {
             mine.dropRockDown(row, col);
             checkLosingCondition(row - 1, col);
         }
+    }
 
+    private void slideRockRight (final int row, final int col,
+            final char[][] oldState, final char item) {
         // falling into another rock - slide it to right side
         if (item == Mine.ROCK && isValidCol(col + 1)) {
 
@@ -216,7 +228,23 @@ public final class MineEngine {
                 checkLosingCondition(row - 1, col + 1);
             }
         }
+    }
 
+    private void fillingOverLamda (final int row, final int col,
+            final char[][] oldState, final char item) {
+        // falling into lambda - slide right only
+        if (item == Mine.LAMBDA && isValidCol(col + 1)) {
+            // check can we slide it to right side?
+            if (oldState[row - 1][col] == Mine.EMPTY
+                    && oldState[row - 2][col] == Mine.EMPTY) {
+                mine.dropRockDownRight(row, col);
+                checkLosingCondition(row - 1, col + 1);
+            }
+        }
+    }
+
+    private void slideRockLeft (final int row, final int col,
+            final char[][] oldState, final char item) {
         // falling into another rock - slide it to left side
         if (item == Mine.ROCK && isValidCol(col + 1) && isValidCol(col - 1)) {
 
@@ -229,16 +257,6 @@ public final class MineEngine {
                     mine.dropRockDownLeft(row, col);
                     checkLosingCondition(row - 1, col - 1);
                 }
-            }
-        }
-
-        // falling into lambda - slide right only
-        if (item == Mine.LAMBDA && isValidCol(col + 1)) {
-            // check can we slide it to right side?
-            if (oldState[row - 1][col] == Mine.EMPTY
-                    && oldState[row - 2][col] == Mine.EMPTY) {
-                mine.dropRockDownRight(row, col);
-                checkLosingCondition(row - 1, col + 1);
             }
         }
     }

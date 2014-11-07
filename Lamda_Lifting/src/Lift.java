@@ -8,7 +8,6 @@
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 
 import javax.swing.SwingUtilities;
 
@@ -16,7 +15,6 @@ public class Lift {
 
     // the "display" optional application property
     // (i.e. -Ddisplay=none)
-    private static final String DISPLAY_PROP = "display";
     private static final String DISPLAY_GRAPHICS = "graphics";
     private static final String DISPLAY_TEXT = "text";
     private static final String DISPLAY_NONE = "none";
@@ -25,17 +23,14 @@ public class Lift {
     public static final String METHOD_NAME = "next";
 
     public static void main (final String[] args) throws NoSuchMethodException,
-            SecurityException, IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException, ClassNotFoundException, MalformedURLException,
-            IOException {
+            IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, IOException {
         /*
          * Manditory for first arg to be the map's file or a URL path. We need to check if
          * args[0] is a url. Then we need to transform it into either a file or string.
-         * Not sure what would be the best yet.
          */
         final String display = getDisplayProperty();
         if (args.length > 0) {
-
             final MineEngine engine = new MineEngine(Mine.createMine(args[0]));
             if (args.length > 1) {
                 // custom agent
@@ -52,13 +47,13 @@ public class Lift {
     }
 
     private static void simulate (final MineEngine engine, final String display,
-            final Class<?> agent) throws NoSuchMethodException, SecurityException,
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+            final Class<?> agent) throws NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException {
         if (display.equals(DISPLAY_GRAPHICS)) {
             // need to start the GUI
             SwingUtilities.invokeLater(new Runnable() {
                 public void run () {
-                    final MineGraphics gui = new MineGraphics(engine, agent);
+                    new MineGraphics(engine, agent);
                 }
             });
         } else {
@@ -107,6 +102,7 @@ public class Lift {
     }
 
     private static String getDisplayProperty () {
+        // Gets -Ddiplay property. If none is found, returns "none"
         final String display = System.getProperty("display");
         if (display != null) {
             if (display.equals(DISPLAY_GRAPHICS) || display.equals(DISPLAY_TEXT)

@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -166,10 +165,10 @@ public final class Mine implements MineInterface {
         return copy;
     }
 
-    public static Mine createMine (final String fileName) throws MalformedURLException,
-            IOException {
+    public static Mine createMine (final String fileName) throws IOException {
         /*
-         * Try
+         * Try to check for a vaild file. If it's a vaild file we assume it is
+         * from a file, if not we assume it is from a URL.
          */
         InputStream input = null;
         final File file = new File(fileName);
@@ -199,6 +198,12 @@ public final class Mine implements MineInterface {
                 mapRows.push(line);
             }
         }
+
+        return setupMine(cols, mapRows);
+    }
+
+    private static Mine setupMine (final int cols,
+            final ArrayDeque<String> mapRows) {
 
         /*
          * setup the mine map from raw text to an ASCII character matrix of size rows X
@@ -238,9 +243,9 @@ public final class Mine implements MineInterface {
                 }
             }
         }
-
         assert 1 < robotRow && robotRow < rows;
         assert 1 < robotCol && robotCol < cols;
         return new Mine(map, lambdas, robotRow, robotCol);
     }
+
 }

@@ -30,7 +30,7 @@ public final class MineGraphics extends JFrame {
     private static final Map<Character, ImageIcon> ICONS =
             new HashMap<Character, ImageIcon>();
     static {
-        final String folder = "src";
+        final String folder = ".";
         ICONS.put(Character.valueOf(Mine.BRICK),
                 new ImageIcon(String.format("%s/wall.png", folder)));
         ICONS.put(Character.valueOf(Mine.CLOSED_LIFT),
@@ -51,9 +51,9 @@ public final class MineGraphics extends JFrame {
 
     private final MineEngine engine;
     private final Class<?> agent;
-    private final JPanel board;
-    private final JLabel status;
-    private final JLabel moves;
+    private JPanel board;
+    private JLabel status;
+    private JLabel moves;
     private final boolean agentExists;
     private Timer timer;
 
@@ -61,27 +61,8 @@ public final class MineGraphics extends JFrame {
         engine = aEngine;
         agent = aAgent;
 
-        // setup the mine map
-        final Mine mine = engine.getMine();
-        final int rows = mine.getRows();
-        final int cols = mine.getCols();
-        board = new JPanel(new GridLayout(rows, cols));
-        for (int row = rows; row >= 1; row--) {
-            for (int col = 1; col <= cols; col++) {
-                board.add(new JLabel(ICONS.get(Character.valueOf(mine.getChar(row, col)))));
-            }
-        }
-        add(board, BorderLayout.CENTER);
-
-        // setup the status bar
-        status = new JLabel();
-        moves = new JLabel();
-        final JPanel south = new JPanel();
-        south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
-        south.add(status);
-        south.add(moves);
-        updateStatusBar();
-        add(south, BorderLayout.SOUTH);
+        setupMineMap();
+        setupStatusBar();
 
         // add keyboard listener if no agent supplied
         if (agent == null) {
@@ -120,14 +101,15 @@ public final class MineGraphics extends JFrame {
         } else {
             class AL implements ActionListener {
                 @Override
-                public void actionPerformed (ActionEvent e) {
+                public void actionPerformed (final ActionEvent e) {
                     if (agentExists) {
                         try {
                             readAgentMove();
-                        } catch (NoSuchMethodException | SecurityException
-                                | IllegalAccessException | IllegalArgumentException
-                                | InvocationTargetException e1) {
+                        } catch (final NoSuchMethodException |
+                                IllegalAccessException |
+                                InvocationTargetException exception) {
                             // problem with reflection
+                            exception.printStackTrace();
                         }
                     }
                 }
@@ -146,8 +128,35 @@ public final class MineGraphics extends JFrame {
         }
     }
 
-    private void readAgentMove () throws NoSuchMethodException, SecurityException,
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    private void setupStatusBar () {
+        // setup the status bar
+        status = new JLabel();
+        moves = new JLabel();
+        final JPanel south = new JPanel();
+        south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
+        south.add(status);
+        south.add(moves);
+        updateStatusBar();
+        add(south, BorderLayout.SOUTH);
+    }
+
+    private void setupMineMap () {
+        // setup the mine map
+        final Mine mine = engine.getMine();
+        final int rows = mine.getRows();
+        final int cols = mine.getCols();
+        board = new JPanel(new GridLayout(rows, cols));
+        for (int row = rows; row >= 1; row--) {
+            for (int col = 1; col <= cols; col++) {
+                board.add(new JLabel(
+                        ICONS.get(Character.valueOf(mine.getChar(row, col)))));
+            }
+        }
+        add(board, BorderLayout.CENTER);
+    }
+
+    private void readAgentMove () throws NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException {
         // get the static method from the agent class using reflection
         final Method method = agent.getDeclaredMethod(Lift.METHOD_NAME, new Class[] {
             MineInterface.class
