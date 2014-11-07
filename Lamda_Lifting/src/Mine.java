@@ -39,7 +39,7 @@ public final class Mine implements MineInterface {
 
     public Mine (final char[][] aMap, final int aLambdas, final int aRobotRow,
             final int aRobotCol) {
-        map = aMap;
+        map = copyMap(aMap);
         rows = map.length;
         cols = map[0].length;
         lambdas = aLambdas;
@@ -158,17 +158,21 @@ public final class Mine implements MineInterface {
     }
 
     public char[][] getMapCopy () {
-        final char[][] copy = new char[rows][cols];
-        for (int i = 0; i < copy.length; i++) {
-            copy[i] = Arrays.copyOf(map[i], cols);
+        return copyMap(map);
+    }
+
+    private static char[][] copyMap (final char[][] source) {
+        final char[][] copy = new char[source.length][source[0].length];
+        for (int i = 0; i < source.length; i++) {
+            copy[i] = Arrays.copyOf(source[i], source[i].length);
         }
         return copy;
     }
 
     public static Mine createMine (final String fileName) throws IOException {
         /*
-         * Try to check for a vaild file. If it's a vaild file we assume it is
-         * from a file, if not we assume it is from a URL.
+         * Try to check for a vaild file. If it's a vaild file we assume it is from a
+         * file, if not we assume it is from a URL.
          */
         InputStream input = null;
         final File file = new File(fileName);
@@ -202,8 +206,7 @@ public final class Mine implements MineInterface {
         return setupMine(cols, mapRows);
     }
 
-    private static Mine setupMine (final int cols,
-            final ArrayDeque<String> mapRows) {
+    private static Mine setupMine (final int cols, final ArrayDeque<String> mapRows) {
 
         /*
          * setup the mine map from raw text to an ASCII character matrix of size rows X
