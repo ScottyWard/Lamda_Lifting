@@ -29,6 +29,7 @@ public final class MineEngine {
     public static final String WON = "won";
     public static final String DESTROYED = "destroyed";
     public static final String ABORTED = "aborted";
+    public static final String HALTED = "halted";
 
     private final Mine mine;
     private final List<Character> moves;
@@ -242,7 +243,7 @@ public final class MineEngine {
         }
     }
 
-    private void checkLosingCondition(final int row, final int col) {
+    private void checkLosingCondition (final int row, final int col) {
         if (isValidRow(row) && isValidRow(row) && isValidCol(col)) {
             if (mine.getChar(row - 1, col) == Mine.ROBOT) {
                 status = DESTROYED;

@@ -7,8 +7,12 @@
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +22,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public final class MineGraphics extends JFrame {
 
+    private static final int TIMER_DELAY = 10;
     private static final Map<Character, ImageIcon> ICONS =
             new HashMap<Character, ImageIcon>();
     static {
@@ -48,6 +54,8 @@ public final class MineGraphics extends JFrame {
     private final JPanel board;
     private final JLabel status;
     private final JLabel moves;
+    private final boolean agentExists;
+    private Timer timer;
 
     public MineGraphics (final MineEngine aEngine, final Class<?> aAgent) {
         engine = aEngine;
@@ -108,22 +116,60 @@ public final class MineGraphics extends JFrame {
                 }
             }
             addKeyListener(new KL());
+            agentExists = false;
+        } else {
+            class AL implements ActionListener {
+                @Override
+                public void actionPerformed (ActionEvent e) {
+                    if (agentExists) {
+                        try {
+                            readAgentMove();
+                        } catch (NoSuchMethodException | SecurityException
+                                | IllegalAccessException | IllegalArgumentException
+                                | InvocationTargetException e1) {
+                            // problem with reflection
+                        }
+                    }
+                }
+            }
+            timer = new Timer(TIMER_DELAY, new AL());
+            agentExists = true;
         }
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("Lambda Lift");
         pack();
         setVisible(true);
+
+        if (agentExists) {
+            timer.start();
+        }
+    }
+
+    private void readAgentMove () throws NoSuchMethodException, SecurityException,
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        // get the static method from the agent class using reflection
+        final Method method = agent.getDeclaredMethod(Lift.METHOD_NAME, new Class[] {
+            MineInterface.class
+        });
+        final Object[] args = new Object[] {
+            engine.getMine()
+        };
+
+        // play the game
+        if (!engine.isGameOver()) {
+            processMove((char) method.invoke(null, args));
+        }
     }
 
     private void updateStatusBar () {
-        //
+        // update game status and score label
         final Mine mine = engine.getMine();
-        status.setText(String.format("%s, score: %d, lambdas: %d of %d",
+        status.setText(String.format("status: %s, score: %d, lambdas: %d of %d",
                 engine.getStatus(), engine.getScore(), mine.getCollectedLambdas(),
                 mine.getLambdas()));
 
-        //
+        // update moves label
         final StringBuilder sb = new StringBuilder();
         final List<Character> movesList = engine.getMoves();
         sb.append(String.format("moves (%d): ", movesList.size()));
@@ -157,6 +203,16 @@ public final class MineGraphics extends JFrame {
             engine.updateMap();
             updateBoard();
             updateStatusBar();
+
+            // display final score to the console at the end of the game
+            if (engine.isGameOver()) {
+                System.out.println(engine.getScore());
+
+                // stop timer from reading agent moves
+                if (agentExists && timer != null && timer.isRunning()) {
+                    timer.stop();
+                }
+            }
         }
     }
 
